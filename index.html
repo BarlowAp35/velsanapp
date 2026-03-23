@@ -796,7 +796,7 @@ async function saveSiparis(){
   const kalemler=[];
   rows.forEach(r=>{const uId=parseInt(r.querySelector('.s-urun').value);const adet=parseInt(r.querySelector('.s-adet').value)||0;const fiyat=parseFloat(r.querySelector('.s-fiyat').value)||0;if(adet>0)kalemler.push({urun_id:uId,adet,birim_fiyat:fiyat});});
   if(!kalemler.length){showToast('Ürün ekleyin','error');return;}
-  const {data:siparis,error}=await sb.from('siparisler').insert({klinik_id:S._siparisKlinikId,temvilci_id:S.user.id,temsilci_id:S.user.id,tarih:document.getElementById('s-tarih').value,notlar:document.getElementById('s-notlar').value.trim(),durum:document.getElementById('s-durum').value}).select().single();
+  const {data:siparis,error}=await sb.from('siparisler').insert({klinik_id:S._siparisKlinikId,temsilci_id:S.user.id,temsilci_id:S.user.id,tarih:document.getElementById('s-tarih').value,notlar:document.getElementById('s-notlar').value.trim(),durum:document.getElementById('s-durum').value}).select().single();
   if(error){showToast('Hata: '+error.message,'error');return;}
   const kalemlerData=kalemler.map(k=>({...k,siparis_id:siparis.id}));
   await sb.from('siparis_kalemleri').insert(kalemlerData);
