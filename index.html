@@ -127,20 +127,11 @@ tr:hover td{background:rgba(255,255,255,0.015);}
     <div class="auth-logo">Velsan<span>App</span></div>
     <div class="auth-sub">Saha ekibi yönetim platformu</div>
     <div class="auth-error" id="auth-error"></div>
-    <div class="form-group"><label>E-posta</label><input type="email" id="login-email" placeholder="ornek@velsanapp.com" value="admin@velsanapp.com"></div>
-    <div class="form-group"><label>Şifre</label><input type="password" id="login-pass" placeholder="••••••••" value="velsan2026" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <div class="form-group"><label>E-posta</label><input type="email" id="login-email" placeholder="ornek@velsanapp.com" ></div>
+    <div class="form-group"><label>Şifre</label><input type="password" id="login-pass" placeholder="••••••••"  onkeydown="if(event.key==='Enter')doLogin()"></div>
     <button class="btn" id="login-btn" onclick="doLogin()">Giriş Yap</button>
-    <div style="margin-top:14px;background:var(--bg3);border-radius:var(--radius-sm);padding:12px;font-size:12px;color:var(--text3)">
-      <div style="font-weight:500;color:var(--text2);margin-bottom:7px">Hızlı Giriş:</div>
-      <div style="display:flex;flex-wrap:wrap;gap:5px">
-        <a onclick="quickLogin('admin@velsanapp.com','velsan2026')" style="cursor:pointer;color:var(--accent2);background:rgba(59,130,246,0.1);padding:3px 9px;border-radius:6px">⚙ Admin</a>
-        <a onclick="quickLogin('ege@velsanapp.com','velsan123')" style="cursor:pointer;color:var(--green);background:rgba(34,197,94,0.1);padding:3px 9px;border-radius:6px">Ege</a>
-        <a onclick="quickLogin('istavr@velsanapp.com','velsan123')" style="cursor:pointer;color:var(--amber);background:rgba(245,158,11,0.1);padding:3px 9px;border-radius:6px">İst. Avrupa</a>
-        <a onclick="quickLogin('istana@velsanapp.com','velsan123')" style="cursor:pointer;color:var(--purple);background:rgba(168,85,247,0.1);padding:3px 9px;border-radius:6px">İst. Anadolu</a>
-        <a onclick="quickLogin('ankara@velsanapp.com','velsan123')" style="cursor:pointer;color:var(--teal);background:rgba(20,184,166,0.1);padding:3px 9px;border-radius:6px">Ankara</a>
-      </div>
     </div>
-  </div>
+</div>
 </div>
 
 <!-- APP -->
@@ -394,11 +385,7 @@ async function loadUserSession(user){
   navigateTo(isAdmin()?'dashboard':'saha');
 }
 
-function quickLogin(email,sifre){
-  document.getElementById('login-email').value=email;
-  document.getElementById('login-pass').value=sifre;
-  doLogin();
-}
+
 
 async function doLogin(){
   const email=document.getElementById('login-email').value.trim();
@@ -796,7 +783,7 @@ async function saveSiparis(){
   const kalemler=[];
   rows.forEach(r=>{const uId=parseInt(r.querySelector('.s-urun').value);const adet=parseInt(r.querySelector('.s-adet').value)||0;const fiyat=parseFloat(r.querySelector('.s-fiyat').value)||0;if(adet>0)kalemler.push({urun_id:uId,adet,birim_fiyat:fiyat});});
   if(!kalemler.length){showToast('Ürün ekleyin','error');return;}
-  const {data:siparis,error}=await sb.from('siparisler').insert({klinik_id:S._siparisKlinikId,temsilci_id:S.user.id,temsilci_id:S.user.id,tarih:document.getElementById('s-tarih').value,notlar:document.getElementById('s-notlar').value.trim(),durum:document.getElementById('s-durum').value}).select().single();
+  const {data:siparis,error}=await sb.from('siparisler').insert({klinik_id:S._siparisKlinikId,temsilci_id:S.user.id,tarih:document.getElementById('s-tarih').value,notlar:document.getElementById('s-notlar').value.trim(),durum:document.getElementById('s-durum').value}).select().single();
   if(error){showToast('Hata: '+error.message,'error');return;}
   const kalemlerData=kalemler.map(k=>({...k,siparis_id:siparis.id}));
   await sb.from('siparis_kalemleri').insert(kalemlerData);
