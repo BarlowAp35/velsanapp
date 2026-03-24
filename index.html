@@ -127,11 +127,20 @@ tr:hover td{background:rgba(255,255,255,0.015);}
     <div class="auth-logo">Velsan<span>App</span></div>
     <div class="auth-sub">Saha ekibi yönetim platformu</div>
     <div class="auth-error" id="auth-error"></div>
-    <div class="form-group"><label>E-posta</label><input type="email" id="login-email" placeholder="ornek@velsanapp.com" ></div>
-    <div class="form-group"><label>Şifre</label><input type="password" id="login-pass" placeholder="••••••••"  onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <div class="form-group"><label>E-posta</label><input type="email" id="login-email" placeholder="ornek@velsanapp.com" value="admin@velsanapp.com"></div>
+    <div class="form-group"><label>Şifre</label><input type="password" id="login-pass" placeholder="••••••••" value="velsan2026" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <button class="btn" id="login-btn" onclick="doLogin()">Giriş Yap</button>
+    <div style="margin-top:14px;background:var(--bg3);border-radius:var(--radius-sm);padding:12px;font-size:12px;color:var(--text3)">
+      <div style="font-weight:500;color:var(--text2);margin-bottom:7px">Hızlı Giriş:</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px">
+        <a onclick="quickLogin('admin@velsanapp.com','velsan2026')" style="cursor:pointer;color:var(--accent2);background:rgba(59,130,246,0.1);padding:3px 9px;border-radius:6px">⚙ Admin</a>
+        <a onclick="quickLogin('ege@velsanapp.com','velsan123')" style="cursor:pointer;color:var(--green);background:rgba(34,197,94,0.1);padding:3px 9px;border-radius:6px">Ege</a>
+        <a onclick="quickLogin('istavr@velsanapp.com','velsan123')" style="cursor:pointer;color:var(--amber);background:rgba(245,158,11,0.1);padding:3px 9px;border-radius:6px">İst. Avrupa</a>
+        <a onclick="quickLogin('istana@velsanapp.com','velsan123')" style="cursor:pointer;color:var(--purple);background:rgba(168,85,247,0.1);padding:3px 9px;border-radius:6px">İst. Anadolu</a>
+        <a onclick="quickLogin('ankara@velsanapp.com','velsan123')" style="cursor:pointer;color:var(--teal);background:rgba(20,184,166,0.1);padding:3px 9px;border-radius:6px">Ankara</a>
+      </div>
     </div>
-</div>
+  </div>
 </div>
 
 <!-- APP -->
@@ -155,7 +164,6 @@ tr:hover td{background:rgba(255,255,255,0.015);}
   <div id="page-urunler" class="page"></div>
   <div id="page-raporlar" class="page"></div>
   <div id="page-personel" class="page"></div>
-  <div id="page-ziyaretler" class="page"></div>
   <div id="page-saha" class="page"></div>
 </div>
 
@@ -298,49 +306,6 @@ tr:hover td{background:rgba(255,255,255,0.015);}
   </div>
 </div>
 
-
-<!-- Ziyaret Planla Modal -->
-<div class="modal-overlay" id="modal-ziyaret-plan">
-  <div class="modal" style="max-width:560px">
-    <div class="modal-title">Günlük Ziyaret Listesi Oluştur</div>
-    <div class="form-group"><label>Tarih</label><input type="date" id="zp-tarih"></div>
-    <div style="margin-bottom:10px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <label style="margin:0">Ziyaret Edilecek Klinikler</label>
-        <button class="btn btn-secondary btn-sm" onclick="addZiyaretRow()">+ Klinik Ekle</button>
-      </div>
-      <div id="ziyaret-rows"></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary btn-sm" onclick="closeModal('modal-ziyaret-plan')">İptal</button>
-      <button class="btn btn-sm" onclick="saveZiyaretPlan()">Listeyi Kaydet</button>
-    </div>
-  </div>
-</div>
-
-<!-- Ziyaret Güncelle Modal -->
-<div class="modal-overlay" id="modal-ziyaret-guncelle">
-  <div class="modal">
-    <div class="modal-title">Ziyaret Sonucu Güncelle</div>
-    <input type="hidden" id="zg-id">
-    <div id="zg-klinik-ad" style="font-size:15px;font-weight:600;margin-bottom:16px;color:var(--accent2)"></div>
-    <div class="form-group">
-      <label>Ziyaret Durumu</label>
-      <select id="zg-durum">
-        <option value="bekliyor">Bekliyor</option>
-        <option value="goruldu">Görüşüldü</option>
-        <option value="gorulemedi">Görüşülemedi</option>
-        <option value="tekrar">Tekrar Ziyaret Gerekli</option>
-      </select>
-    </div>
-    <div class="form-group"><label>Notlar</label><textarea id="zg-notlar" rows="3" placeholder="Görüşme notları..."></textarea></div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary btn-sm" onclick="closeModal('modal-ziyaret-guncelle')">İptal</button>
-      <button class="btn btn-sm" onclick="saveZiyaretGuncelle()">Kaydet</button>
-    </div>
-  </div>
-</div>
-
 <div id="toast"></div>
 
 <script>
@@ -359,7 +324,6 @@ const S = {
   siparisler: [],
   gorevler: [],
   checkins: [],
-  ziyaretler: [],
   bolgeler: ['Ege Bölgesi','İstanbul Avrupa','İstanbul Anadolu','Ankara Bölgesi'],
   checkinTimer: null,
   _siparisKlinikId: null,
@@ -408,48 +372,33 @@ function showLoading(show){
 // ==================== AUTH ====================
 async function init(){
   showLoading(true);
-  try {
-    const {data,error}=await sb.auth.getSession();
-    if(data?.session){
-      await loadUserSession(data.session.user);
-    } else {
-      showLoading(false);
-      document.getElementById('auth-screen').style.display='flex';
-    }
-  } catch(e) {
-    console.error('init error:',e);
+  const {data:{session}}=await sb.auth.getSession();
+  if(session){
+    await loadUserSession(session.user);
+  } else {
     showLoading(false);
     document.getElementById('auth-screen').style.display='flex';
   }
 }
 
 async function loadUserSession(user){
-  try {
-    S.user=user;
-    const {data:profil,error}=await sb.from('kullanicilar').select('*').eq('id',user.id).single();
-    if(error||!profil){
-      console.warn('Profil bulunamadı, çıkış yapılıyor');
-      await sb.auth.signOut();
-      showLoading(false);
-      document.getElementById('auth-screen').style.display='flex';
-      return;
-    }
-    S.profil=profil;
-    await loadAllData();
-    showLoading(false);
-    document.getElementById('auth-screen').style.display='none';
-    document.getElementById('app').style.display='flex';
-    setupTopbar();
-    setupNav();
-    navigateTo(isAdmin()?'dashboard':'saha');
-  } catch(e) {
-    console.error('loadUserSession error:',e);
-    showLoading(false);
-    document.getElementById('auth-screen').style.display='flex';
-  }
+  S.user=user;
+  const {data:profil}=await sb.from('kullanicilar').select('*').eq('id',user.id).single();
+  S.profil=profil;
+  await loadAllData();
+  showLoading(false);
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app').style.display='flex';
+  setupTopbar();
+  setupNav();
+  navigateTo(isAdmin()?'dashboard':'saha');
 }
 
-
+function quickLogin(email,sifre){
+  document.getElementById('login-email').value=email;
+  document.getElementById('login-pass').value=sifre;
+  doLogin();
+}
 
 async function doLogin(){
   const email=document.getElementById('login-email').value.trim();
@@ -474,19 +423,14 @@ async function logout(){
 
 // ==================== VERİ YÜKLEME ====================
 async function loadAllData(){
-  try {
-    await Promise.all([
-      loadKullanicilar(),
-      loadKlinikler(),
-      loadUrunler(),
-      loadSiparisler(),
-      loadGorevler(),
-      loadCheckins(),
-      loadZiyaretler(),
-    ]);
-  } catch(e) {
-    console.error('loadAllData error:', e);
-  }
+  await Promise.all([
+    loadKullanicilar(),
+    loadKlinikler(),
+    loadUrunler(),
+    loadSiparisler(),
+    loadGorevler(),
+    loadCheckins(),
+  ]);
 }
 
 async function loadKullanicilar(){
@@ -513,13 +457,6 @@ async function loadCheckins(){
   const {data}=await sb.from('checkins').select('*').eq('tarih',todayStr());
   S.checkins=data||[];
 }
-async function loadZiyaretler(){
-  try {
-    const {data,error}=await sb.from('ziyaretler').select('*').order('tarih',{ascending:false});
-    if(!error) S.ziyaretler=data||[];
-    else console.warn('ziyaretler load error:',error.message);
-  } catch(e){ console.warn('ziyaretler catch:',e); }
-}
 
 // ==================== TOPBAR & NAV ====================
 function setupTopbar(){
@@ -541,13 +478,12 @@ const NAV_ICONS={
   urunler:'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>',
   raporlar:'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>',
   personel:'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>',
-  ziyaretler:'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>',
   saha:'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>',
 };
 
 function setupNav(){
-  const adminNav=[{id:'dashboard',label:'Dashboard'},{id:'gorevler',label:'Görevler'},{id:'klinikler',label:'Klinikler'},{id:'siparisler',label:'Siparişler'},{id:'urunler',label:'Ürünler'},{id:'ziyaretler',label:'Ziyaretler'},{id:'raporlar',label:'Raporlar'},{id:'personel',label:'Personel'}];
-  const personelNav=[{id:'saha',label:'Görevlerim'},{id:'klinikler',label:'Kliniklerim'},{id:'siparisler',label:'Siparişler'},{id:'ziyaretler',label:'Ziyaretlerim'},{id:'raporlar',label:'Raporlarım'}];
+  const adminNav=[{id:'dashboard',label:'Dashboard'},{id:'gorevler',label:'Görevler'},{id:'klinikler',label:'Klinikler'},{id:'siparisler',label:'Siparişler'},{id:'urunler',label:'Ürünler'},{id:'raporlar',label:'Raporlar'},{id:'personel',label:'Personel'}];
+  const personelNav=[{id:'saha',label:'Görevlerim'},{id:'klinikler',label:'Kliniklerim'},{id:'siparisler',label:'Siparişler'},{id:'raporlar',label:'Raporlarım'}];
   const navs=isAdmin()?adminNav:personelNav;
   document.getElementById('nav-links').innerHTML=navs.map(n=>`<div class="nav-btn" id="nav-${n.id}" onclick="navigateTo('${n.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor">${NAV_ICONS[n.id]||''}</svg><span>${n.label}</span></div>`).join('');
 }
@@ -558,7 +494,7 @@ function navigateTo(page){
   const pg=document.getElementById(`page-${page}`);if(!pg)return;
   pg.classList.add('active');
   const nb=document.getElementById(`nav-${page}`);if(nb)nb.classList.add('active');
-  const renders={dashboard:renderDashboard,gorevler:renderGorevler,klinikler:renderKlinikler,siparisler:renderSiparisler,urunler:renderUrunler,ziyaretler:renderZiyaretler,raporlar:renderRaporlar,personel:renderPersonel,saha:renderSaha};
+  const renders={dashboard:renderDashboard,gorevler:renderGorevler,klinikler:renderKlinikler,siparisler:renderSiparisler,urunler:renderUrunler,raporlar:renderRaporlar,personel:renderPersonel,saha:renderSaha};
   if(renders[page])renders[page]();
 }
 
@@ -860,7 +796,7 @@ async function saveSiparis(){
   const kalemler=[];
   rows.forEach(r=>{const uId=parseInt(r.querySelector('.s-urun').value);const adet=parseInt(r.querySelector('.s-adet').value)||0;const fiyat=parseFloat(r.querySelector('.s-fiyat').value)||0;if(adet>0)kalemler.push({urun_id:uId,adet,birim_fiyat:fiyat});});
   if(!kalemler.length){showToast('Ürün ekleyin','error');return;}
-  const {data:siparis,error}=await sb.from('siparisler').insert({klinik_id:S._siparisKlinikId,temsilci_id:S.user.id,tarih:document.getElementById('s-tarih').value,notlar:document.getElementById('s-notlar').value.trim(),durum:document.getElementById('s-durum').value}).select().single();
+  const {data:siparis,error}=await sb.from('siparisler').insert({klinik_id:S._siparisKlinikId,temvilci_id:S.user.id,temsilci_id:S.user.id,tarih:document.getElementById('s-tarih').value,notlar:document.getElementById('s-notlar').value.trim(),durum:document.getElementById('s-durum').value}).select().single();
   if(error){showToast('Hata: '+error.message,'error');return;}
   const kalemlerData=kalemler.map(k=>({...k,siparis_id:siparis.id}));
   await sb.from('siparis_kalemleri').insert(kalemlerData);
@@ -1071,167 +1007,6 @@ function startTimer(giris){
   },15000);
 }
 
-
-// ==================== ZİYARETLER ====================
-function ziyaretBadge(d){
-  const m={bekliyor:'badge-gray',goruldu:'badge-green',gorulemedi:'badge-red',tekrar:'badge-amber'};
-  const l={bekliyor:'Bekliyor',goruldu:'Görüşüldü',gorulemedi:'Görüşülemedi',tekrar:'Tekrar Gerekli'};
-  return`<span class="badge ${m[d]||'badge-gray'}"><span class="dot"></span>${l[d]||d}</span>`;
-}
-
-function renderZiyaretler(){
-  const isAdm=isAdmin();
-  const list=isAdm?S.ziyaretler:S.ziyaretler.filter(z=>z.temsilci_id===S.user.id);
-  const bugun=list.filter(z=>z.tarih===todayStr());
-  const goruldu=list.filter(z=>z.durum==='goruldu').length;
-  const gorulemedi=list.filter(z=>z.durum==='gorulemedi').length;
-  const tekrar=list.filter(z=>z.durum==='tekrar').length;
-
-  document.getElementById('page-ziyaretler').innerHTML=`
-    <div class="section-header">
-      <div class="page-title" style="margin-bottom:0">Ziyaretler</div>
-      <div style="display:flex;gap:8px">
-        ${isAdm?`<button class="btn btn-amber btn-sm" onclick="excelIndir('ziyaretler')">⬇ Excel</button>`:''}
-        ${!isAdm?`<button class="btn btn-sm" onclick="openZiyaretPlanModal()">+ Günlük Liste Oluştur</button>`:''}
-      </div>
-    </div>
-    <div class="grid-4" style="margin-bottom:16px">
-      <div class="card stat-card"><div class="stat-num stat-blue">${list.length}</div><div class="stat-label">Toplam Ziyaret</div></div>
-      <div class="card stat-card"><div class="stat-num stat-green">${goruldu}</div><div class="stat-label">Görüşüldü</div></div>
-      <div class="card stat-card"><div class="stat-num stat-red">${gorulemedi}</div><div class="stat-label">Görüşülemedi</div></div>
-      <div class="card stat-card"><div class="stat-num stat-amber">${tekrar}</div><div class="stat-label">Tekrar Gerekli</div></div>
-    </div>
-    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
-      <input type="date" id="zf-tarih" onchange="filterZiyaretler()" style="width:auto;padding:7px 10px;font-size:12px">
-      <select onchange="filterZiyaretler()" id="zf-durum" style="width:auto;padding:7px 10px;font-size:12px">
-        <option value="">Tüm Durumlar</option>
-        <option value="bekliyor">Bekliyor</option>
-        <option value="goruldu">Görüşüldü</option>
-        <option value="gorulemedi">Görüşülemedi</option>
-        <option value="tekrar">Tekrar Gerekli</option>
-      </select>
-      ${isAdm?`<select onchange="filterZiyaretler()" id="zf-temsilci" style="width:auto;padding:7px 10px;font-size:12px">
-        <option value="">Tüm Temsilciler</option>
-        ${S.kullanicilar.filter(k=>k.rol==='personel').map(p=>`<option value="${p.id}">${p.ad}</option>`).join('')}
-      </select>`:''}
-      ${isAdm?`<select onchange="filterZiyaretler()" id="zf-bolge" style="width:auto;padding:7px 10px;font-size:12px">
-        <option value="">Tüm Bölgeler</option>
-        ${S.bolgeler.map(b=>`<option value="${b}">${b}</option>`).join('')}
-      </select>`:''}
-      <button class="btn btn-secondary btn-sm" onclick="resetZiyaretFilter()">Temizle</button>
-    </div>
-    <div id="ziyaret-list">${renderZiyaretList(list)}</div>`;
-}
-
-function renderZiyaretList(list){
-  if(!list.length)return'<div style="color:var(--text3);font-size:13px;padding:16px 0">Ziyaret bulunamadı.</div>';
-  const isAdm=isAdmin();
-  return`<div class="table-wrap"><table>
-    <thead><tr><th>Klinik</th><th>Şehir</th>${isAdm?'<th>Temsilci</th>':''}<th>Tarih</th><th>Durum</th><th>Notlar</th><th></th></tr></thead>
-    <tbody>`+
-  list.map(z=>{
-    const k=klinikById(z.klinik_id);
-    const t=profilById(z.temsilci_id);
-    return`<tr>
-      <td><div style="font-weight:500">${k?.ad||'?'}</div></td>
-      <td style="font-size:11px;color:var(--text3)">${k?.sehir||''} / ${k?.ilce||''}</td>
-      ${isAdm?`<td><span class="badge badge-blue" style="font-size:10px">${t?.bolge?.split(' ')[0]||''}</span><div style="font-size:11px;color:var(--text3);margin-top:2px">${t?.ad||''}</div></td>`:''}
-      <td style="font-size:12px;color:var(--text3);font-family:'DM Mono',monospace">${z.tarih||''}</td>
-      <td>${ziyaretBadge(z.durum)}</td>
-      <td style="font-size:12px;color:var(--text3);max-width:200px">${z.notlar||'—'}</td>
-      <td style="white-space:nowrap">
-        ${!isAdm?`<button class="btn btn-secondary btn-sm" onclick="openZiyaretGuncelle(${z.id})" style="font-size:11px">Güncelle</button>`:''}
-        ${isAdm?`<button class="btn btn-danger btn-sm btn-icon" onclick="deleteZiyaret(${z.id})">✕</button>`:''}
-      </td>
-    </tr>`;
-  }).join('')+'</tbody></table></div>';
-}
-
-function filterZiyaretler(){
-  const isAdm=isAdmin();
-  let list=isAdm?S.ziyaretler:S.ziyaretler.filter(z=>z.temsilci_id===S.user.id);
-  const tf=document.getElementById('zf-tarih');if(tf?.value)list=list.filter(z=>z.tarih===tf.value);
-  const df=document.getElementById('zf-durum');if(df?.value)list=list.filter(z=>z.durum===df.value);
-  const pf=document.getElementById('zf-temsilci');if(pf?.value)list=list.filter(z=>z.temsilci_id===pf.value);
-  const bf=document.getElementById('zf-bolge');
-  if(bf?.value){const tIds=S.kullanicilar.filter(k=>k.bolge===bf.value).map(k=>k.id);list=list.filter(z=>tIds.includes(z.temsilci_id));}
-  document.getElementById('ziyaret-list').innerHTML=renderZiyaretList(list);
-}
-
-function resetZiyaretFilter(){
-  ['zf-tarih','zf-durum','zf-temsilci','zf-bolge'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  filterZiyaretler();
-}
-
-function openZiyaretPlanModal(){
-  document.getElementById('zp-tarih').value=todayStr();
-  document.getElementById('ziyaret-rows').innerHTML='';
-  addZiyaretRow();
-  openModal('modal-ziyaret-plan');
-}
-
-function addZiyaretRow(){
-  const myKlinikler=S.klinikler.filter(k=>k.temsilci_id===S.user.id);
-  if(!myKlinikler.length){showToast('Önce klinik kaydı oluşturun','error');return;}
-  const div=document.createElement('div');
-  div.className='z-row';
-  div.style.cssText='display:flex;gap:8px;align-items:center;margin-bottom:8px';
-  div.innerHTML=`<select class="z-klinik" style="flex:1;padding:8px 10px;font-size:13px;background:var(--bg3);border:1px solid var(--border2);color:var(--text);border-radius:var(--radius-sm)">
-    ${myKlinikler.map(k=>`<option value="${k.id}">${k.ad} — ${k.sehir}</option>`).join('')}
-  </select>
-  <button class="btn btn-danger btn-icon" onclick="this.closest('.z-row').remove()">✕</button>`;
-  document.getElementById('ziyaret-rows').appendChild(div);
-}
-
-async function saveZiyaretPlan(){
-  const tarih=document.getElementById('zp-tarih').value;
-  if(!tarih){showToast('Tarih seçin','error');return;}
-  const rows=document.querySelectorAll('.z-row');
-  if(!rows.length){showToast('En az 1 klinik ekleyin','error');return;}
-  const kayitlar=[];
-  rows.forEach(r=>{
-    const kId=parseInt(r.querySelector('.z-klinik').value);
-    if(kId)kayitlar.push({temsilci_id:S.user.id,klinik_id:kId,tarih,durum:'bekliyor'});
-  });
-  const {data,error}=await sb.from('ziyaretler').insert(kayitlar).select();
-  if(!error){
-    S.ziyaretler.unshift(...(data||[]));
-    closeModal('modal-ziyaret-plan');
-    showToast(`${kayitlar.length} ziyaret planlandı ✓`,'success');
-    renderZiyaretler();
-  } else showToast('Hata: '+error.message,'error');
-}
-
-function openZiyaretGuncelle(id){
-  const z=S.ziyaretler.find(z=>z.id===id);if(!z)return;
-  const k=klinikById(z.klinik_id);
-  document.getElementById('zg-id').value=id;
-  document.getElementById('zg-klinik-ad').textContent=k?.ad||'?';
-  document.getElementById('zg-durum').value=z.durum||'bekliyor';
-  document.getElementById('zg-notlar').value=z.notlar||'';
-  openModal('modal-ziyaret-guncelle');
-}
-
-async function saveZiyaretGuncelle(){
-  const id=parseInt(document.getElementById('zg-id').value);
-  const durum=document.getElementById('zg-durum').value;
-  const notlar=document.getElementById('zg-notlar').value.trim();
-  const {error}=await sb.from('ziyaretler').update({durum,notlar}).eq('id',id);
-  if(!error){
-    const z=S.ziyaretler.find(z=>z.id===id);
-    if(z){z.durum=durum;z.notlar=notlar;}
-    closeModal('modal-ziyaret-guncelle');
-    showToast('Ziyaret güncellendi ✓','success');
-    renderZiyaretler();
-  } else showToast('Hata: '+error.message,'error');
-}
-
-async function deleteZiyaret(id){
-  await sb.from('ziyaretler').delete().eq('id',id);
-  S.ziyaretler=S.ziyaretler.filter(z=>z.id!==id);
-  showToast('Silindi','success');renderZiyaretler();
-}
-
 // ==================== EXCEL ====================
 function excelIndir(tip){
   if(!isAdmin()){showToast('Sadece admin indirebilir','error');return;}
@@ -1240,7 +1015,7 @@ function excelIndir(tip){
     fn='VelsanApp_Klinikler.csv';
     rows=[['Klinik Adı','Şehir','İlçe','Adres','Yetkili','Tel','Temsilci','Bölge','Kayıt Tarihi','Notlar']];
     S.klinikler.forEach(k=>{const t=profilById(k.temsilci_id);rows.push([k.ad,k.sehir||'',k.ilce||'',k.adres||'',k.yetkili||'',k.tel||'',t?.ad||'',t?.bolge||'',k.kayit_tarihi||'',k.notlar||'']);});
-  } else if(tip==='siparisler'){
+  } else {
     fn='VelsanApp_Siparisler.csv';
     rows=[['#','Klinik','Şehir','Temsilci','Bölge','Tarih','Ürünler','Toplam (₺)','Durum','Not']];
     S.siparisler.forEach(s=>{const k=klinikById(s.klinik_id);const t=profilById(s.temsilci_id);const top=(s.siparis_kalemleri||[]).reduce((a,k)=>a+k.adet*k.birim_fiyat,0);const us=(s.siparis_kalemleri||[]).map(k=>{const u=urunById(k.urun_id);return`${u?.ad||'?'} x${k.adet}`;}).join(' | ');rows.push([s.id,k?.ad||'',k?.sehir||'',t?.ad||'',t?.bolge||'',s.tarih||'',us,top,s.durum,s.notlar||'']);});
@@ -1249,11 +1024,6 @@ function excelIndir(tip){
   const csv=BOM+rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
   const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=fn;a.click();URL.revokeObjectURL(url);
-  else if(tip==='ziyaretler'){
-    fn='VelsanApp_Ziyaretler.csv';
-    rows=[['Klinik','Şehir','İlçe','Temsilci','Bölge','Tarih','Durum','Notlar']];
-    S.ziyaretler.forEach(z=>{const k=klinikById(z.klinik_id);const t=profilById(z.temsilci_id);const dl={bekliyor:'Bekliyor',goruldu:'Görüşüldü',gorulemedi:'Görüşülemedi',tekrar:'Tekrar Gerekli'};rows.push([k?.ad||'',k?.sehir||'',k?.ilce||'',t?.ad||'',t?.bolge||'',z.tarih||'',dl[z.durum]||z.durum,z.notlar||'']);});
-  }
   showToast('İndirildi ✓','success');
 }
 
