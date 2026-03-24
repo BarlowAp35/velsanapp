@@ -455,15 +455,19 @@ async function logout(){
 
 // ==================== VERİ YÜKLEME ====================
 async function loadAllData(){
-  await Promise.all([
-    loadKullanicilar(),
-    loadKlinikler(),
-    loadUrunler(),
-    loadSiparisler(),
-    loadGorevler(),
-    loadCheckins(),
-    loadZiyaretler(),
-  ]);
+  try {
+    await Promise.all([
+      loadKullanicilar(),
+      loadKlinikler(),
+      loadUrunler(),
+      loadSiparisler(),
+      loadGorevler(),
+      loadCheckins(),
+      loadZiyaretler(),
+    ]);
+  } catch(e) {
+    console.error('loadAllData error:', e);
+  }
 }
 
 async function loadKullanicilar(){
@@ -491,8 +495,11 @@ async function loadCheckins(){
   S.checkins=data||[];
 }
 async function loadZiyaretler(){
-  const {data}=await sb.from('ziyaretler').select('*').order('tarih',{ascending:false});
-  S.ziyaretler=data||[];
+  try {
+    const {data,error}=await sb.from('ziyaretler').select('*').order('tarih',{ascending:false});
+    if(!error) S.ziyaretler=data||[];
+    else console.warn('ziyaretler load error:',error.message);
+  } catch(e){ console.warn('ziyaretler catch:',e); }
 }
 
 // ==================== TOPBAR & NAV ====================
