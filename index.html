@@ -408,26 +408,45 @@ function showLoading(show){
 // ==================== AUTH ====================
 async function init(){
   showLoading(true);
-  const {data:{session}}=await sb.auth.getSession();
-  if(session){
-    await loadUserSession(session.user);
-  } else {
+  try {
+    const {data,error}=await sb.auth.getSession();
+    if(data?.session){
+      await loadUserSession(data.session.user);
+    } else {
+      showLoading(false);
+      document.getElementById('auth-screen').style.display='flex';
+    }
+  } catch(e) {
+    console.error('init error:',e);
     showLoading(false);
     document.getElementById('auth-screen').style.display='flex';
   }
 }
 
 async function loadUserSession(user){
-  S.user=user;
-  const {data:profil}=await sb.from('kullanicilar').select('*').eq('id',user.id).single();
-  S.profil=profil;
-  await loadAllData();
-  showLoading(false);
-  document.getElementById('auth-screen').style.display='none';
-  document.getElementById('app').style.display='flex';
-  setupTopbar();
-  setupNav();
-  navigateTo(isAdmin()?'dashboard':'saha');
+  try {
+    S.user=user;
+    const {data:profil,error}=await sb.from('kullanicilar').select('*').eq('id',user.id).single();
+    if(error||!profil){
+      console.warn('Profil bulunamadı, çıkış yapılıyor');
+      await sb.auth.signOut();
+      showLoading(false);
+      document.getElementById('auth-screen').style.display='flex';
+      return;
+    }
+    S.profil=profil;
+    await loadAllData();
+    showLoading(false);
+    document.getElementById('auth-screen').style.display='none';
+    document.getElementById('app').style.display='flex';
+    setupTopbar();
+    setupNav();
+    navigateTo(isAdmin()?'dashboard':'saha');
+  } catch(e) {
+    console.error('loadUserSession error:',e);
+    showLoading(false);
+    document.getElementById('auth-screen').style.display='flex';
+  }
 }
 
 
